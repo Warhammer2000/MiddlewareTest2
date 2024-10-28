@@ -2,15 +2,17 @@
 
 namespace JustTest.Middlewaresa
 {
-    public class Middleware5 : MiddlewareBase
+    public class Middleware1 : MiddlewareBase
     {
-        public Middleware5()
+        public Middleware1()
         {
-            id = 5;
+            id = 1;
         }
+
         public override async Task InvokeAsync(HttpContext context)
         {
             Log.Verbose($"Running Middleware {GetType().Name} ID: {id}");
+           
 
             if (ShouldThrowException)
             {
@@ -26,7 +28,6 @@ namespace JustTest.Middlewaresa
                     await context.Response.WriteAsync($"{GetType().Name} ended success.");
                 }
             }
-
             await _next(context);
         }
     }

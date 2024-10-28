@@ -1,4 +1,6 @@
-﻿namespace JustTest.Middlewaresa
+﻿using Serilog;
+
+namespace JustTest.Middlewaresa
 {
     public class Middleware4 : MiddlewareBase
     {
@@ -6,14 +8,25 @@
         {
             id = 4;
         }
-        public Middleware4(RequestDelegate next) : base(next)
+        public override async Task InvokeAsync(HttpContext context)
         {
-            HasTryCatch = false;
-        }
+            Log.Verbose($"Running Middleware {GetType().Name} ID: {id}");
 
-        public async Task InvokeAsync(HttpContext context)
-        {
-            Console.WriteLine("Выполняется Middleware4");
+            if (ShouldThrowException)
+            {
+                throw new Exception($"Middleware {GetType().Name} throw ex!");
+            }
+            else
+            {
+                Log.Verbose($"Middleware {GetType().Name} just return succeed response.");
+
+                if (!context.Response.HasStarted)
+                {
+                    context.Response.StatusCode = 200;
+                    await context.Response.WriteAsync($"{GetType().Name} ended success.");
+                }
+            }
+
             await _next(context);
         }
     }
