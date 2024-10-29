@@ -1,33 +1,35 @@
-﻿using Serilog;
-
-namespace JustTest.Middlewaresa
+﻿namespace JustTest.Middlewaresa
 {
+    using JustTest.MiddlewareSettings;
+    using Microsoft.AspNetCore.Http;
+    using Serilog;
+    using System;
+    using System.Threading.Tasks;
+
     public class Middleware4 : MiddlewareBase
     {
-        public Middleware4()
-        {
-            id = 4;
-        }
+        public Middleware4(RequestDelegate next, MiddlewareSelector selector) : base(next, selector, 4) { }
+
         public override async Task InvokeAsync(HttpContext context)
         {
-            Log.Verbose($"Running Middleware {GetType().Name} ID: {id}");
-
-            if (ShouldThrowException)
+            try
             {
-                throw new Exception($"Middleware {GetType().Name} throw ex!");
+                await base.InvokeAsync(context);
             }
-            else
+            catch (Exception ex)
             {
-                Log.Verbose($"Middleware {GetType().Name} just return succeed response.");
+                Log.Error($"Exception in {GetType().Name}: {ex.Message}");
 
                 if (!context.Response.HasStarted)
                 {
                     context.Response.StatusCode = 200;
-                    await context.Response.WriteAsync($"{GetType().Name} ended success.");
+                    context.Response.ContentType = "text/plain";
+
+                    LogBufferHelper.AddLog(context, $"Exception in {GetType().Name}: {ex.Message}");
+                    
+                    await context.Response.WriteAsync(LogBufferHelper.GetLogBuffer(context));
                 }
             }
-
-            await _next(context);
         }
     }
 }
